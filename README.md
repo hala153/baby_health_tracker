@@ -33,8 +33,7 @@ A comprehensive web-based system designed to provide smart healthcare for newbor
 
 ## 📸 Screenshots
 
-Project screenshots are available in the repository.
-
+Ai.jpg / Admain.jpg / Doctor.jpg / Nurse
 ## 👩‍💻 Author
 
 Hala Alsammak - Information Engineering Student
