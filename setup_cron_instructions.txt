@@ -1,0 +1,66 @@
+# إعداد نظام الإشعارات التلقائي
+
+## 1. إعداد Cron Job للإشعارات التلقائية
+
+لإرسال الإشعارات التلقائية للمواعيد والتطعيمات المتأخرة، أضف السطر التالي إلى cron job:
+
+```bash
+# تشغيل يومياً الساعة 9 صباحاً لإرسال تذكيرات المواعيد والتطعيمات المتأخرة
+0 9 * * * /usr/bin/php /path/to/your/baby_health/cron_send_reminders.php
+
+# أو للتشغيل كل ساعة للتطوير والاختبار
+0 * * * * /usr/bin/php /path/to/your/baby_health/cron_send_reminders.php
+```
+
+## 2. تحديثات قاعدة البيانات المطلوبة
+
+تأكد من وجود الأعمدة التالية في جداول قاعدة البيانات:
+
+### جدول appointments
+```sql
+ALTER TABLE appointments ADD COLUMN reminder_sent TINYINT(1) DEFAULT 0;
+ALTER TABLE appointments ADD COLUMN reminder_sent_date DATETIME NULL;
+ALTER TABLE appointments ADD COLUMN upcoming_reminder_sent TINYINT(1) DEFAULT 0;
+ALTER TABLE appointments ADD COLUMN upcoming_reminder_date DATETIME NULL;
+ALTER TABLE appointments ADD COLUMN confirmation_date DATETIME NULL;
+ALTER TABLE appointments ADD COLUMN confirmation_status VARCHAR(20) DEFAULT 'pending';
+```
+
+### جدول child_vaccines
+```sql
+ALTER TABLE child_vaccines ADD COLUMN overdue_notification_sent TINYINT(1) DEFAULT 0;
+ALTER TABLE child_vaccines ADD COLUMN overdue_notification_date DATETIME NULL;
+```
+
+## 3. أنواع الإشعارات المتاحة
+
+النظام الآن يدعم:
+
+1. **تأكيدات المواعيد** - عند حجز موعد جديد
+2. **تذكيرات المواعيد** - 24 ساعة قبل الموعد
+3. **تذكيرات قادمة** - 48 ساعة قبل الموعد
+4. **تطعيمات متأخرة** - 7 أيام بعد تاريخ الاستحقاق
+
+## 4. الإشعارات في لوحة الأهل
+
+- تظهر جميع الإشعارات في لوحة تحكم الأهل
+- تحديث تلقائي كل دقيقة
+- عداد للإشعارات غير المقروءة
+- فلاتر حسب نوع الإشعار (الكل/غير مقروءة/مقروءة)
+
+## 5. اختبار النظام
+
+لاختبار الإشعارات:
+
+1. احجز موعد جديد وتحقق من استلام إشعار التأكيد
+2. شغّل السكريبت يدوياً: `php cron_send_reminders.php`
+3. تحقق من ظهور الإشعارات في لوحة الأهل
+
+## 6. إعدادات البريد الإلكتروني
+
+تأكد من إعدادات البريد في php.ini:
+```ini
+SMTP=smtp.gmail.com
+smtp_port=587
+sendmail_from = noreply@babyhealth.local
+```
